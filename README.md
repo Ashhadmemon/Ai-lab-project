@@ -30,6 +30,44 @@ would move the estimate up the most.
 - `app.py` — the Flask routes (`/`, `/api/predict`, `/api/model`, `/health`).
 - `templates/index.html` — the form and result UI.
 
+## Folder Hierarchy
+project
+│
+├── data/
+│   ├── raw/
+│   │   └── Student_performance_data.csv
+│   │
+│   └── processed/
+│       └── students_clean.csv
+│
+├── outputs/
+│   └── models/
+│       ├── gpa_pipeline.joblib
+│       ├── grade_classifier.joblib
+│       └── model_metadata.json
+│
+├── outputs_notebook/
+│   ├── best_gpa_model.joblib
+│   ├── classification_results.csv
+│   ├── confusion_matrix.png
+│   ├── cv_mae_by_model.png
+│   ├── model_comparison.csv
+│   ├── model_metadata.json
+│   ├── permutation_importance.png
+│   └── predicted_vs_actual_and_residuals.png
+│
+├── templates/
+│   └── index.html
+│
+├── advisor.py
+├── app.py
+├── clean_data.py
+├── gpa_final_model.py
+├── gpa_model_comparison.ipynb
+├── README.md
+└── requirements.txt
+
+
 ## Setup
 
 ```bash
