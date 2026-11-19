@@ -31,7 +31,7 @@ would move the estimate up the most.
 - `templates/index.html` — the form and result UI.
 
 ## Folder Hierarchy
-project
+```project
 │
 ├── data/
 │   ├── raw/
@@ -66,6 +66,7 @@ project
 ├── gpa_model_comparison.ipynb
 ├── README.md
 └── requirements.txt
+```
 
 
 ## Setup
