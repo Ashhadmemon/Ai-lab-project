@@ -19,7 +19,7 @@ _MIN_GAIN = 0.01
 
 @dataclass
 class Suggestion:
-    feature: str
+    feature: str 
     action: str
     estimated_gain: float
 
