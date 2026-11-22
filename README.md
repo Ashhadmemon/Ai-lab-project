@@ -111,7 +111,16 @@ docker build -t student-gpa-estimator .
 docker run --rm -p 5000:5000 -e FLASK_SECRET_KEY=change-me student-gpa-estimator
 ```
 
-Set a persistent secret and database volume for production deployments. The SQLite database is created in `data/app_history.db`.
+Set a persistent secret and database volume for production deployments. Local SQLite is created in `data/app_history.db`; on Vercel it uses temporary `/tmp/app_history.db` storage and history can disappear between deployments or cold starts.
+
+## Vercel deployment
+
+1. Import the repository into Vercel.
+2. Set `FLASK_SECRET_KEY` to a long random value in Project Settings → Environment Variables.
+3. Use the repository root as the framework root.
+4. Deploy. `vercel.json` routes all requests to `api/index.py`, and the included model files are packaged with the function.
+
+For durable accounts and prediction history, replace SQLite with a hosted database such as PostgreSQL or Vercel Postgres before production use.
 
 ## Tests
 

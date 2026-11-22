@@ -1,0 +1,10 @@
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/api/index" }
+  ],
+  "functions": {
+    "api/index.py": {
+      "includeFiles": "{outputs/**,templates/**,data/**,advisor.py,gpa_final_model.py,app.py}"
+    }
+  }
+}

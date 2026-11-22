@@ -18,7 +18,7 @@ MODEL_DIR = BASE_DIR / "outputs" / "models"
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "development-only-change-this")
-DATABASE = BASE_DIR / "data" / "app_history.db"
+DATABASE = Path("/tmp/app_history.db") if os.environ.get("VERCEL") else BASE_DIR / "data" / "app_history.db"
 
 
 def get_db():
