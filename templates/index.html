@@ -37,6 +37,8 @@ input,select{width:100%;max-width:100%;min-width:0;margin-top:7px;padding:10px 1
 @media(max-height:600px) and (min-width:821px){main{padding-top:20px}.result{position:static}}
 @media(pointer:coarse){input,select,button{min-height:44px}}
 @media(prefers-reduced-motion:reduce){button,input,select{transition:none}}
+@media print{body{background:#fff}.toolbar,button,.save-row{display:none!important}main{max-width:none;padding:12px}.grid{grid-template-columns:1fr}.feature-grid{grid-template-columns:1fr 1fr}.result{position:static}.panel,form.panel{box-shadow:none;break-inside:avoid}.dataset{border-left:0}footer{break-before:auto}}
+.toolbar{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:12px}.toolbar button{width:auto;margin:0;padding:9px 12px}.secondary-button{background:var(--paper)!important;color:var(--ink)!important;border:1px solid var(--line)!important}.danger-button{background:#fff5f1!important;color:var(--bad)!important;border:1px solid #c47a68!important}.feature-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:24px}@media(max-width:820px){.feature-grid{grid-template-columns:1fr}}.feature-panel h2{font:800 1rem var(--head);margin:0 0 10px}.feature-panel{min-height:150px}.goal-row{display:grid;grid-template-columns:1fr auto;gap:8px}.goal-row input{margin-top:0}.goal-row button{margin-top:0;width:auto}.history-list,.scenario-list{list-style:none;padding:0;margin:10px 0 0}.history-list li,.scenario-list li{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid var(--line);font-size:.82rem}.save-row{display:flex;align-items:center;gap:8px;margin-top:14px;font:700 .78rem var(--head)}.save-row input{width:18px;height:18px;min-height:18px;margin:0}.uncertainty,.explanation{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:.78rem}.explanation{overflow-wrap:anywhere}.privacy-note{font-size:.76rem;color:var(--mute);margin:10px 0 0}.empty-state{color:var(--mute);font-size:.82rem;margin:10px 0}
 input:hover,select:hover{border-color:#b9ad96}
 input:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid #efd9a5;outline-offset:2px;border-color:var(--terracotta)}
 .err{color:var(--bad);font-size:.76rem;min-height:1.1em;display:block;margin-top:3px}
@@ -108,6 +110,7 @@ footer{margin-top:30px;padding-top:16px;border-top:1px solid var(--line);color:v
       {% endfor %}
     </div>
   </fieldset>
+  <label class="save-row"><input type="checkbox" id="saveResult" checked> Save this estimate privately in this browser session</label>
   <button type="submit" id="go" {% if model_error %}disabled{% endif %}>Estimate GPA</button>
 </form>
 
@@ -118,6 +121,32 @@ footer{margin-top:30px;padding-top:16px;border-top:1px solid var(--line);color:v
 </aside>
 </div>
 
+<section class="feature-grid" aria-label="Prediction tools">
+  <article class="panel feature-panel">
+    <h2>GPA goal</h2>
+    <div class="goal-row"><input id="goalGpa" type="number" min="0" max="4" step="0.1" value="3.5" aria-label="Target GPA"><button class="secondary-button" type="button" id="checkGoal">Check</button></div>
+    <p class="empty-state" id="goalResult">Set a target after making an estimate.</p>
+  </article>
+  <article class="panel feature-panel">
+    <h2>Scenario comparison</h2>
+    <p class="empty-state" id="scenarioStatus">Estimate a scenario using the current form values.</p>
+    <ul class="scenario-list" id="scenarioList"></ul>
+  </article>
+  <article class="panel feature-panel">
+    <h2>Recent estimates</h2>
+    <ul class="history-list" id="historyList"></ul>
+    <div class="toolbar"><button class="secondary-button" type="button" id="exportHistory">Export CSV</button><button class="danger-button" type="button" id="clearHistory">Clear</button></div>
+  </article>
+</section>
+
+<section class="panel" style="margin-top:16px">
+  <h2 style="font:800 1rem var(--head);margin:0 0 8px">Account and privacy</h2>
+  <p class="privacy-note" id="accountStatus">Using an anonymous browser session. No name or identifying student information is requested.</p>
+  <div class="row" style="margin-top:10px"><label>Username<input id="username" autocomplete="username" minlength="3"></label><label>Password<input id="password" type="password" autocomplete="current-password" minlength="8"></label></div>
+  <div class="toolbar"><button class="secondary-button" type="button" id="registerAccount">Register</button><button class="secondary-button" type="button" id="loginAccount">Sign in</button><button class="danger-button" type="button" id="logoutAccount">Sign out</button><button class="secondary-button" type="button" id="printReport">Print / save PDF</button></div>
+  <p class="privacy-note">Signed-in history remains tied to the account. Signing out returns to anonymous session history. Clearing history permanently removes estimates for the active owner.</p>
+</section>
+
 <footer>
   Educational demo trained on high-school data. It is not validated for university CGPA and must not be used for admissions, scholarships or decisions about real students. Results show patterns in past data, not what will happen if a habit changes.
   {% if meta %}<br>Model: {{ meta.regression_model }} · holdout MAE {{ '%.2f'|format(meta.holdout_metrics_regression.test_mae) }} GPA points.{% endif %}
@@ -125,8 +154,7 @@ footer{margin-top:30px;padding-top:16px;border-top:1px solid var(--line);color:v
 </main>
 
 <script>
-const form = document.getElementById("f"), out = document.getElementById("out"), go = document.getElementById("go");
-const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const form = document.getElementById("f"), out = document.getElementById("out"), go = document.getElementById("go");let lastPrediction = null;const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
 function showFieldErrors(fields) {
   form.querySelectorAll(".err").forEach(e => e.textContent = "");
@@ -142,13 +170,15 @@ form.addEventListener("submit", async ev => {
   const body = Object.fromEntries(new FormData(form).entries());
   go.disabled = true; go.textContent = "Estimating…";
   try {
-    const res = await fetch("/api/predict", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
+    const save = document.getElementById("saveResult").checked ? "&save=1" : "";
+    const res = await fetch(`/api/predict?${save.replace(/^&/, "")}`, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
     const data = await res.json();
     if (!res.ok) {
       showFieldErrors(data.fields);
       out.innerHTML = `<p class="empty">${esc(data.error || "Something went wrong.")} ${data.fields ? "Fix the highlighted fields and try again." : ""}</p>`;
       return;
     }
+    lastPrediction = data;
     const pct = Math.min(100, Math.max(0, Math.round(data.predicted_gpa / 4 * 100)));
     const probs = data.classifier_probabilities || {};
     const top = Object.entries(probs).sort((a, b) => b[1] - a[1]).slice(0, 2)
@@ -162,6 +192,8 @@ form.addEventListener("submit", async ev => {
       <dl>
         ${top ? `<dt>Second opinion from the band classifier</dt><dd>${esc(top)}</dd>` : ""}
       </dl>
+      ${data.uncertainty ? `<div class="uncertainty"><strong>Estimate range:</strong> ${data.uncertainty.range_low.toFixed(2)}–${data.uncertainty.range_high.toFixed(2)} GPA<br><strong>Holdout MAE:</strong> ${data.uncertainty.holdout_mae.toFixed(3)}</div>` : ""}
+      ${data.explanation ? `<div class="explanation"><strong>Most influential model inputs</strong><br>${data.explanation.slice(0, 3).map(x => `${esc(x.feature)}: ${x.coefficient > 0 ? "+" : ""}${x.coefficient}`).join(" · ")}</div>` : ""}
       ${data.was_clipped ? `<p class="note">The raw model output (${data.raw_prediction.toFixed(2)}) was outside the possible 0 to 4 range, so it was limited to ${data.predicted_gpa.toFixed(2)}. Treat this input as unusual.</p>` : ""}
       ${(data.suggestions && data.suggestions.length) ? `
       <div class="tips">
@@ -177,8 +209,103 @@ form.addEventListener("submit", async ev => {
     out.innerHTML = `<p class="empty">Could not reach the server. Check that app.py is running, then try again.</p>`;
   } finally {
     go.disabled = false; go.textContent = "Estimate GPA";
+    loadHistory();
   }
 });
+
+async function loadHistory() {
+  try {
+    const res = await fetch("/api/history");
+    const rows = await res.json();
+    document.getElementById("historyList").innerHTML = rows.length ? rows.slice(0, 5).map(row =>
+      `<li><span>${esc(row.created_at.slice(0, 16).replace("T", " "))}</span><strong>${Number(row.result.predicted_gpa).toFixed(2)} GPA · Band ${esc(row.result.grade_band)}</strong></li>`
+    ).join("") : `<li class="empty-state">No saved estimates yet.</li>`;
+  } catch (e) {
+    document.getElementById("historyList").innerHTML = `<li class="empty-state">History unavailable.</li>`;
+  }
+}
+
+async function compareScenario(label, changes) {
+  const body = Object.fromEntries(new FormData(form).entries());
+  Object.entries(changes).forEach(([key, value]) => body[key] = String(value));
+  const res = await fetch("/api/predict", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
+  const data = await res.json();
+  return {label, gpa: data.predicted_gpa};
+}
+
+async function runScenarios() {
+  if (!lastPrediction) return;
+  const status = document.getElementById("scenarioStatus");
+  status.textContent = "Comparing study plans…";
+  try {
+    const base = await compareScenario("Current plan", {});
+    const study = await compareScenario("Study 5 hours more", {StudyTimeWeekly: Math.min(20, Number(Object.fromEntries(new FormData(form).entries()).StudyTimeWeekly) + 5)});
+    const attendance = await compareScenario("Reduce absences", {Absences: Math.max(0, Number(Object.fromEntries(new FormData(form).entries()).Absences) - 5)});
+    const combined = await compareScenario("Combined habits", {StudyTimeWeekly: Math.min(20, Number(Object.fromEntries(new FormData(form).entries()).StudyTimeWeekly) + 5), Absences: Math.max(0, Number(Object.fromEntries(new FormData(form).entries()).Absences) - 5), Tutoring: 1});
+    const rows = [base, study, attendance, combined];
+    document.getElementById("scenarioList").innerHTML = rows.map(row => `<li><span>${esc(row.label)}</span><strong>${row.gpa.toFixed(2)} GPA</strong></li>`).join("");
+    status.textContent = "Three actionable changes compared with the current form.";
+  } catch (e) {
+    status.textContent = "Could not compare scenarios.";
+  }
+}
+
+document.getElementById("checkGoal").addEventListener("click", () => {
+  const target = Number(document.getElementById("goalGpa").value);
+  if (!lastPrediction || !Number.isFinite(target)) {
+    document.getElementById("goalResult").textContent = "Make an estimate first, then set a target.";
+    return;
+  }
+  const gap = target - lastPrediction.predicted_gpa;
+  document.getElementById("goalResult").textContent = gap <= 0
+    ? `Already within or above your ${target.toFixed(1)} GPA goal.`
+    : `You are ${gap.toFixed(2)} GPA points below your ${target.toFixed(1)} goal. Review the improvement suggestions.`;
+});
+
+document.getElementById("clearHistory").addEventListener("click", async () => {
+  await fetch("/api/history", {method: "DELETE"});
+  loadHistory();
+});
+
+document.getElementById("exportHistory").addEventListener("click", () => { window.location.href = "/api/history/export"; });
+document.getElementById("printReport").addEventListener("click", () => window.print());
+
+async function authRequest(path) {
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value;
+  const response = await fetch(path, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({username, password})});
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Account request failed.");
+  return data;
+}
+
+async function refreshAccount() {
+  try {
+    const response = await fetch("/api/auth/status");
+    const data = await response.json();
+    document.getElementById("accountStatus").textContent = data.authenticated
+      ? `Signed in as ${data.username}. Account history is active.`
+      : "Using an anonymous browser session. No name or identifying student information is requested.";
+  } catch (e) {}
+}
+
+document.getElementById("registerAccount").addEventListener("click", async () => {
+  try { await authRequest("/api/auth/register"); await refreshAccount(); loadHistory(); }
+  catch (e) { document.getElementById("accountStatus").textContent = e.message; }
+});
+document.getElementById("loginAccount").addEventListener("click", async () => {
+  try { await authRequest("/api/auth/login"); await refreshAccount(); loadHistory(); }
+  catch (e) { document.getElementById("accountStatus").textContent = e.message; }
+});
+document.getElementById("logoutAccount").addEventListener("click", async () => {
+  await fetch("/api/auth/logout", {method: "POST"});
+  await refreshAccount();
+  loadHistory();
+});
+
+form.addEventListener("submit", () => setTimeout(runScenarios, 600));
+refreshAccount();
+loadHistory();
 </script>
 </body>
 </html>

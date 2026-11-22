@@ -94,7 +94,31 @@ python app.py
 ```
 
 Then open `http://127.0.0.1:5000/`.
+## Product features
 
+- Warm, fully responsive GPA estimation dashboard
+- Goal planning and actionable scenario comparisons
+- Prediction uncertainty and influential-feature explanations
+- SQLite prediction history for anonymous sessions or optional accounts
+- CSV history export and browser print/PDF reports
+- Privacy controls to sign out or permanently clear history
+- Docker deployment and GitHub Actions CI
+
+## Optional Docker deployment
+
+```bash
+docker build -t student-gpa-estimator .
+docker run --rm -p 5000:5000 -e FLASK_SECRET_KEY=change-me student-gpa-estimator
+```
+
+Set a persistent secret and database volume for production deployments. The SQLite database is created in `data/app_history.db`.
+
+## Tests
+
+```bash
+pip install pytest
+pytest -q
+```
 ## Data source
 
 https://www.kaggle.com/datasets/rabieelkharoua/students-performance-dataset/data
