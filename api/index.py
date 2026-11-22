@@ -9,5 +9,4 @@ from app import app
 
 application = app
 
-# Vercel discovers a WSGI application from `app` or `application`.
 app = application
