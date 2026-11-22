@@ -1,10 +1,20 @@
 {
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/api/index" }
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "api/index.py"
+    }
   ],
   "functions": {
     "api/index.py": {
-      "includeFiles": "{outputs/**,templates/**,data/**,advisor.py,gpa_final_model.py,app.py}"
+      "includeFiles": "{outputs/**,templates/**,data/processed/**,advisor.py,gpa_final_model.py,app.py}"
     }
   }
 }
