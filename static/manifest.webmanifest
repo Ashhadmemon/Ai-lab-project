@@ -1,0 +1,12 @@
+{
+  "name": "GPA Estimator",
+  "short_name": "GPA Estimator",
+  "description": "High-school GPA estimation and study progress dashboard",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6f0e6",
+  "theme_color": "#a84d35",
+  "icons": [
+    {"src": "/static/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}
+  ]
+}

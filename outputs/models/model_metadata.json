@@ -1,0 +1,90 @@
+{
+  "regression_model": "LinearRegression (defaults)",
+  "classification_model": "LogisticRegression (C=10, StandardScaler)",
+  "selected_by": "lowest 5x10 repeated-CV MAE (regression) / macro-F1 (classification)",
+  "notebook_cv_mae": 0.1603,
+  "notebook_cv_accuracy": 0.8244,
+  "holdout_metrics_regression": {
+    "test_mae": 0.15546428918245478,
+    "test_rmse": 0.19678419865917515,
+    "test_r2": 0.9531714916247549
+  },
+  "holdout_metrics_classification": {
+    "test_accuracy": 0.8162839248434238,
+    "test_macro_f1": 0.7082456878987061,
+    "test_balanced_acc": 0.6944637219619502
+  },
+  "trained_on_rows": 2392,
+  "features": [
+    "Age",
+    "ParentalEducation",
+    "StudyTimeWeekly",
+    "Absences",
+    "Tutoring",
+    "ParentalSupport",
+    "Extracurricular",
+    "Sports",
+    "Music",
+    "Volunteering"
+  ],
+  "target": "GPA",
+  "seed": 42,
+  "allowed_ranges": {
+    "Age": [
+      15,
+      18
+    ],
+    "ParentalEducation": [
+      0,
+      4
+    ],
+    "StudyTimeWeekly": [
+      0,
+      20
+    ],
+    "Absences": [
+      0,
+      30
+    ],
+    "Tutoring": [
+      0,
+      1
+    ],
+    "ParentalSupport": [
+      0,
+      4
+    ],
+    "Extracurricular": [
+      0,
+      1
+    ],
+    "Sports": [
+      0,
+      1
+    ],
+    "Music": [
+      0,
+      1
+    ],
+    "Volunteering": [
+      0,
+      1
+    ]
+  },
+  "linear_coefficients": {
+    "Age": -0.005322704539982454,
+    "ParentalEducation": 0.0018725626923180722,
+    "StudyTimeWeekly": 0.028929713886620058,
+    "Absences": -0.09977645650145714,
+    "Tutoring": 0.24954148100590653,
+    "ParentalSupport": 0.15153881769225608,
+    "Extracurricular": 0.19058404770520218,
+    "Sports": 0.19387558745664493,
+    "Music": 0.143073768903237,
+    "Volunteering": -0.008478472826983314
+  },
+  "intercept": 2.6032222277658685,
+  "sklearn_version": "1.7.2",
+  "trained_at_utc": "2026-11-17T14:51:04+00:00",
+  "scope_note": "High-school dataset; not a validated university CGPA predictor."
+}

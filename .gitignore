@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.venv*
+
+# Local tools and databases
+.tools/
+*.db
+*.sqlite*
+
+# Environment and generated local files
+.env
+.env.*
+
+# Editors and OS
+.vscode/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,26 @@
+{
+  "model": "Linear Regression",
+  "seed": 42,
+  "features": [
+    "Age",
+    "ParentalEducation",
+    "StudyTimeWeekly",
+    "Absences",
+    "Tutoring",
+    "ParentalSupport",
+    "Extracurricular",
+    "Sports",
+    "Music",
+    "Volunteering"
+  ],
+  "target": "GPA",
+  "cv_mae_mean": 0.16029416619978817,
+  "test_mae": 0.15546428918245478,
+  "test_r2": 0.9531714916247549,
+  "parameters": "defaults",
+  "trained_on_rows": 1913,
+  "gpa_range_in_data": [
+    0.0,
+    4.0
+  ]
+}
