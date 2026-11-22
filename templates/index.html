@@ -69,22 +69,40 @@ footer{margin-top:30px;padding-top:16px;border-top:1px solid var(--line);color:v
 @media print{body{background:#fff}.toolbar,.tools,.panel form,form.panel,footer button{display:none}.grid{display:block}.result{position:static;border:1px solid #bbb}.print-only{display:block}}
 .danger-button{background:#9f3d32;border-color:#9f3d32}.goal-row{display:flex;gap:6px}.goal-row input{margin:0}.goal-row button{width:auto;margin:0}.goal-progress{margin-top:8px;height:8px;background:#e7decb;border-radius:4px;overflow:hidden}.goal-progress i{display:block;height:100%;background:var(--olive)}.comparison-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.comparison-grid div{border-top:1px solid var(--line);padding-top:6px;font-size:.75rem}.comparison-grid strong{display:block;font:800 1rem var(--head);color:var(--terracotta)}
 </style>
+<style>
+:root{--canvas:#f2f4ef;--paper:#ffffff;--card:#ffffff;--ink:#17211b;--mute:#697268;--line:#dde3dc;--terracotta:#c84b31;--terracotta-dark:#9e3925;--olive:#52624a;--gold:#dda94a;--bad:#a33a31;--ok:#4d7042;--head:"Manrope","Trebuchet MS",sans-serif;--body:"Manrope","Trebuchet MS",sans-serif}
+body{background:linear-gradient(135deg,#edf1e9 0,#f7f8f5 52%,#eef2ed 100%)}
+main{width:min(1380px,100%);margin:0 auto;padding:28px 32px 64px}
+.app-header{border:0;margin:0 0 18px;padding:0 0 18px;align-items:center}.app-header h1{font-size:clamp(2.2rem,4vw,3.7rem);letter-spacing:-.055em}.eyebrow{color:var(--olive)}
+.dataset{text-align:left;border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:8px;background:rgba(255,255,255,.72);padding:10px 14px}.lede{margin:0 0 18px;max-width:72ch;color:var(--mute)}
+.toolbar{margin:0 0 16px;gap:8px}.toolbar button,.small-button{border-radius:7px;padding:10px 12px}.toolbar .secondary{background:#fff}
+.grid{grid-template-columns:minmax(520px,1.45fr) minmax(320px,.55fr);gap:16px}.panel{border-radius:10px;border:1px solid var(--line);box-shadow:0 10px 30px rgba(31,52,38,.06)}form.panel{box-shadow:0 10px 30px rgba(31,52,38,.06)}
+.result{top:16px;background:#183128;border:0;color:#f7faf7}.result .result-kicker{color:#bdcdbf}.result .empty{color:#bdcdbf}.result .empty-mark{background:#25443a;border-color:#3b5a50;color:#d4ddd5}.result .gpa{color:#fff}.result .band{background:#dfe8d7;color:#31502a}.result .scale-l,.result dl dt,.result .note{color:#bdcdbf}.result .factor-list li{border-color:#3a554c}.result .tip-gain{color:#d4e5b8}.result .note{border-color:#dda94a}
+fieldset{padding:14px 0}.row{gap:12px}label{font-size:.78rem}input,select{border-radius:7px;border-color:#d8dfd8;background:#fbfcfa;min-height:43px}.err{min-height:.9em}
+button{border-radius:7px}.tools{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.tool{border-radius:10px;border:1px solid var(--line);box-shadow:0 8px 24px rgba(31,52,38,.05);padding:18px}.tool h2{font-size:.88rem;letter-spacing:.01em;margin-bottom:12px}.tool p{line-height:1.45}.insights{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(260px,.85fr);gap:16px;margin-top:16px}.insight-stack{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.insight-stack>.tool:last-child{grid-column:1/-1}
+.history-list{max-height:180px}.trend-canvas{height:190px}.plan-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.model-range{color:inherit}.danger-button{width:auto!important;margin-top:10px!important}
+footer{margin-top:18px;border-top:0;color:var(--mute)}
+@media(max-width:980px){.grid{grid-template-columns:1fr}.insights{grid-template-columns:1fr}.tools{grid-template-columns:repeat(2,minmax(0,1fr))}.result{position:static}.insight-stack{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){main{padding:18px 12px 44px}.app-header{align-items:flex-start}.dataset{max-width:118px}.tools,.insight-stack{grid-template-columns:1fr}.insight-stack>.tool:last-child{grid-column:auto}.grid{grid-template-columns:minmax(0,1fr)}.row{grid-template-columns:1fr}.toolbar button{flex:1}.plan-grid{grid-template-columns:1fr}.gpa{font-size:4.8rem}}
+@media print{body{background:#fff}.toolbar,.insights,footer button{display:none!important}.grid{display:grid}.result{background:#fff!important;color:var(--ink)!important;border:1px solid var(--line)!important}.result .gpa{color:var(--terracotta)!important}.result .result-kicker,.result .scale-l,.result dl dt,.result .note{color:var(--mute)!important}}
+</style>
 </head>
 <body>
 <main>
 <header class="app-header">
   <div>
-    <p class="eyebrow">Student learning tool</p>
+    <p class="eyebrow">Study performance workspace</p>
     <h1>GPA Estimator</h1>
   </div>
-  <div class="dataset"><span>Model sample</span><strong>2,392 students</strong></div>
+  <div class="dataset"><span>Dataset</span><strong>2,392 records</strong></div>
 </header>
-<p class="lede">Enter a few study habits and background details. This estimate is based on patterns in a high-school dataset, not a guarantee of individual performance.</p>
+<p class="lede">Estimate a GPA, compare practical habits, and build a 30, 60, or 90-day study plan from historical patterns.</p>
 
 <div class="toolbar" aria-label="Dashboard actions">
-  <button type="button" class="secondary" id="exportHistory">Export CSV</button>
-  <button type="button" class="secondary" onclick="window.print()">Print / Save PDF</button>
-  <button type="button" class="secondary" id="clearHistory">Delete my history</button>
+  <button type="button" class="secondary" id="exportHistory">Export history</button>
+  <button type="button" class="secondary" onclick="window.print()">Save report</button>
+  <button type="button" class="secondary" id="clearHistory">Clear history</button>
+  <button type="button" class="danger-button" id="deletePersonalData">Delete local data</button>
 </div>
 
 <section class="tools" aria-label="Planning tools">
@@ -109,17 +127,6 @@ footer{margin-top:30px;padding-top:16px;border-top:1px solid var(--line);color:v
   <div class="tool">
     <h2>Recent predictions</h2>
     <ul class="history-list" id="historyList"><li>Loading history…</li></ul>
-  </div>
-  <div class="tool">
-    <h2>Privacy and account</h2>
-    <p id="accountStatus">Using an anonymous local session.</p>
-    <div class="account-row">
-      <input id="accountEmail" type="email" placeholder="Email" aria-label="Email">
-      <input id="accountPassword" type="password" placeholder="Password" aria-label="Password">
-      <button type="button" class="secondary" id="loginAccount">Log in</button>
-      <button type="button" id="registerAccount">Register</button>
-      <button type="button" class="secondary" id="logoutAccount" hidden>Log out</button>
-    </div>
   </div>
   <div class="tool">
     <h2>30-day study plan</h2>
@@ -171,11 +178,6 @@ footer{margin-top:30px;padding-top:16px;border-top:1px solid var(--line);color:v
     <h2>Fairness slice audit</h2>
     <p>Descriptive group differences from the source data.</p>
     <div id="fairnessStatus">Loading audit…</div>
-  </div>
-  <div class="tool">
-    <h2>Privacy controls</h2>
-    <p>Remove all predictions, profiles, goals, and check-ins for this session/account.</p>
-    <button type="button" class="danger-button" id="deletePersonalData">Delete my data</button>
   </div>
 </section>
 
@@ -429,29 +431,6 @@ document.getElementById("deletePersonalData").addEventListener("click", async ()
   if (res.ok) { loadHistory(); loadProfiles(); loadGoals(); alert("Your personal app data was deleted."); }
 });
 
-async function refreshAccount() {
-  const res = await fetch("/api/account");
-  const data = await res.json();
-  document.getElementById("accountStatus").textContent = data.email
-    ? `Signed in as ${data.email}.` : "Using an anonymous local session.";
-  document.getElementById("logoutAccount").hidden = !data.email;
-}
-async function accountAction(path) {
-  const email = document.getElementById("accountEmail").value.trim();
-  const password = document.getElementById("accountPassword").value;
-  const res = await fetch(path, {method:"POST", headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({email,password})});
-  const data = await res.json();
-  if (!res.ok) { alert(data.error || "Account action failed."); return; }
-  refreshAccount();
-}
-document.getElementById("registerAccount").addEventListener("click", () => accountAction("/api/account/register"));
-document.getElementById("loginAccount").addEventListener("click", () => accountAction("/api/account/login"));
-document.getElementById("logoutAccount").addEventListener("click", async () => {
-  await fetch("/api/account/logout", {method:"POST"});
-  refreshAccount();
-});
-
 document.getElementById("generatePlan").addEventListener("click", async () => {
   if (!currentPayload) {
     document.getElementById("planResult").innerHTML = "<p>Estimate a GPA first.</p>";
@@ -559,7 +538,10 @@ loadProfiles();
 loadGoals();
 loadModelEvidence();
 loadFairness();
-refreshAccount();
+
+const estimatorGrid = document.querySelector(".grid");
+const insightTools = document.querySelector(".tools");
+if (estimatorGrid && insightTools) estimatorGrid.insertAdjacentElement("afterend", insightTools);
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("/static/sw.js").catch(() => {}));

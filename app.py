@@ -8,7 +8,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from flask import Flask, jsonify, render_template, request, session
-from werkzeug.security import check_password_hash, generate_password_hash
 
 from gpa_final_model import (FEATURES, RULES, GPAPredictor, InputValidationError,
                               ModelNotFoundError, validate_input)
@@ -17,7 +16,14 @@ BASE_DIR = Path(__file__).resolve().parent
 MODEL_DIR = BASE_DIR / "outputs" / "models"
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("FLASK_SECRET_KEY", "development-only-change-me")
+app.secret_key = os.environ.get("FLASK_SECRET_KEY") or (
+    "development-only-change-me" if not os.environ.get("VERCEL") else secrets.token_hex(32)
+)
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=bool(os.environ.get("VERCEL")),
+)
 
 DB_PATH = Path("/tmp/app_history.db") if os.environ.get("VERCEL") else BASE_DIR / "app_history.db"
 
@@ -31,15 +37,6 @@ def db():
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     with db() as connection:
-        connection.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                email TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL,
-                role TEXT NOT NULL DEFAULT 'student',
-                created_at TEXT NOT NULL
-            )
-        """)
         connection.execute("""
             CREATE TABLE IF NOT EXISTS predictions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -88,17 +85,12 @@ def init_db():
                 FOREIGN KEY(goal_id) REFERENCES study_goals(id)
             )
         """)
-        user_columns = {row[1] for row in connection.execute("PRAGMA table_info(users)").fetchall()}
-        if "role" not in user_columns:
-            connection.execute("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'student'")
 
 
 init_db()
 
 
 def ensure_owner():
-    if session.get("user_id"):
-        return f"user-{session['user_id']}"
     if "owner" not in session:
         session["owner"] = "guest-" + secrets.token_hex(12)
     return session["owner"]
@@ -288,58 +280,6 @@ def create_plan():
     })
 
 
-@app.post("/api/account/register")
-def register():
-    payload = request.get_json(silent=True) or {}
-    email = str(payload.get("email", "")).strip().lower()
-    password = str(payload.get("password", ""))
-    if "@" not in email or len(password) < 8:
-        return jsonify({"error": "Use a valid email and a password of at least 8 characters."}), 400
-    try:
-        with db() as connection:
-            cursor = connection.execute(
-                "INSERT INTO users (email, password_hash, created_at) VALUES (?, ?, ?)",
-                (email, generate_password_hash(password), datetime.now(timezone.utc).isoformat()),
-            )
-            session["user_id"] = cursor.lastrowid
-            session["email"] = email
-        return jsonify({"email": email, "role": "student"})
-    except sqlite3.IntegrityError:
-        return jsonify({"error": "That email is already registered."}), 409
-
-
-@app.post("/api/account/login")
-def login():
-    payload = request.get_json(silent=True) or {}
-    email = str(payload.get("email", "")).strip().lower()
-    password = str(payload.get("password", ""))
-    with db() as connection:
-        user = connection.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
-    if user is None or not check_password_hash(user["password_hash"], password):
-        return jsonify({"error": "Invalid email or password."}), 401
-    session["user_id"] = user["id"]
-    session["email"] = email
-    return jsonify({"email": email, "role": user["role"]})
-
-
-@app.post("/api/account/logout")
-def logout():
-    session.pop("user_id", None)
-    session.pop("email", None)
-    return jsonify({"status": "logged_out"})
-
-
-@app.get("/api/account")
-def account():
-    if not session.get("user_id"):
-        return jsonify({"email": None, "role": None})
-    with db() as connection:
-        user = connection.execute("SELECT email, role FROM users WHERE id = ?",
-                                  (session["user_id"],)).fetchone()
-    return jsonify({"email": user["email"] if user else None,
-                    "role": user["role"] if user else None})
-
-
 @app.get("/api/model")
 def api_model():
     if predictor is None:
@@ -484,26 +424,6 @@ def complete_goal(goal_id):
     if cursor.rowcount == 0:
         return jsonify({"error": "Goal not found."}), 404
     return jsonify({"status": "completed"})
-
-
-@app.get("/api/counselor/overview")
-def counselor_overview():
-    if not session.get("user_id"):
-        return jsonify({"error": "Sign in with a counselor account."}), 403
-    with db() as connection:
-        user = connection.execute("SELECT role FROM users WHERE id = ?", (session["user_id"],)).fetchone()
-    if user is None or user["role"] != "counselor":
-        return jsonify({"error": "Counselor access required."}, 403)
-    with db() as connection:
-        goals = connection.execute("SELECT target_gpa, horizon_days, status FROM study_goals").fetchall()
-        predictions = connection.execute("SELECT predicted_gpa, grade_band FROM predictions").fetchall()
-    return jsonify({
-        "students_with_goals": len(goals),
-        "active_goals": sum(row["status"] == "active" for row in goals),
-        "completed_goals": sum(row["status"] == "completed" for row in goals),
-        "predictions": len(predictions),
-        "average_predicted_gpa": round(sum(row["predicted_gpa"] for row in predictions) / len(predictions), 2) if predictions else None,
-    })
 
 
 @app.post("/api/privacy/delete-all")
